@@ -3,6 +3,7 @@ import {HttpClient} from "@angular/common/http";
 import {map, Observable} from "rxjs";
 import {User} from "./interfaces/user";
 import {environment} from "../environments/environment";
+import {KeyboardProfile} from "./interfaces/keyboardprofile";
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +36,7 @@ export class UserService {
     return this.http.delete<void>(`${this.serverUrl}/user/delete/${username}`);
   }
 
-  getKeyboardProfileByUsername(username: string) {
-    return this.http.get<User>(`${this.serverUrl}/user/profile/${username}`);
+  public getKeyboardProfileByUsername(username: string): Observable<KeyboardProfile[]>{
+    return this.http.get<KeyboardProfile[]>(`${this.serverUrl}/keyboardprofile/profile/${username}`);
   }
 }

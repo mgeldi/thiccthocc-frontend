@@ -80,13 +80,14 @@
           <div class="mb-3">
             <div class="card mb-3 mt-3 h-100">
               <div class="card-body">
-                <h6 class="d-flex align-items-center mb-3"><i class="material-icons text-info mr-2">Keyboard Profiles</i></h6>
+                <h6 class="d-flex align-items-center mb-3"><i class="material-icons text-info mr-2">Keyboard
+                  Profiles</i></h6>
                 <div class="table-responsive">
                   <table class="table user-list">
                     <thead>
                     <tr>
-                      <th scope="col"><span>User</span></th>
-                      <th scope="col"><span>Email</span></th>
+                      <th scope="col"><span>Keyboard Profile Name</span></th>
+                      <th scope="col"><span>View/Edit</span></th>
                       <th scope="col">&nbsp;</th>
                     </tr>
                     </thead>
@@ -95,31 +96,11 @@
                       <tr>
                         <td scope="row">
                           <img src={{user.profilePictureUrl}} alt="">
-                          <a href="/user/profile/{{user.username}}" class="user-link">{{user.username}}</a>
-                          <span class="user-subhead">Admin</span>
+                          <a href="/keyboardprofile/{{keyboardProfile.keyboardProfileId}}"
+                             class="user-link">{{keyboardProfile.profileName}}</a>
                         </td>
                         <td>
-                          <a href="/user/{{user.username}}">{{user.email}}</a>
-                        </td>
-                        <td style="width: 20%;">
-                          <a href="#" class="table-link">
-									<span class="fa-stack">
-										<i class="fa fa-square fa-stack-2x"></i>
-										<i class="fa fa-search-plus fa-stack-1x fa-inverse"></i>
-									</span>
-                          </a>
-                          <a href="#" class="table-link">
-									<span class="fa-stack">
-										<i class="fa fa-square fa-stack-2x"></i>
-										<i class="fa fa-pencil fa-stack-1x fa-inverse"></i>
-									</span>
-                          </a>
-                          <a href="#" class="table-link danger">
-									<span class="fa-stack">
-										<i class="fa fa-square fa-stack-2x"></i>
-										<i class="fa fa-trash-o fa-stack-1x fa-inverse"></i>
-									</span>
-                          </a>
+                          <span>In the future, you will be able to view the profile!</span>
                         </td>
                       </tr>
                     </ng-container>

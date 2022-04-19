@@ -14,7 +14,7 @@ import {KeyboardProfile} from "../interfaces/keyboardprofile";
 export class UserProfileComponent implements OnInit, OnDestroy {
   public user: User;
   private sub: Subscription;
-  public keyboardProfiles: KeyboardProfile;
+  public keyboardProfiles: KeyboardProfile[];
 
   constructor(private userService: UserService, private route: ActivatedRoute) {
   }
@@ -26,7 +26,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         {next: user => this.user = user, error: err => console.log(err)}
       );
       this.sub = this.userService.getKeyboardProfileByUsername(params["username"]).subscribe(
-        {next: user => this.user = user, error: err => console.log(err)}
+        {next: keyboardProfile => this.keyboardProfiles = keyboardProfile, error: err => console.log(err)}
       );
     })
   }
