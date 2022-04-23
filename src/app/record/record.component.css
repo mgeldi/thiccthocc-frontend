@@ -144,7 +144,12 @@ input {
   width: 350px;
 }
 
-.hg-button.my-button {
+.hg-theme-default .hg-button.pressed {
   background: lightskyblue;
+  color: white;
+}
+
+.hg-theme-default .hg-button.activated {
+  background: red;
   color: white;
 }

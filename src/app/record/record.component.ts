@@ -1,6 +1,8 @@
 import {Component, ViewEncapsulation} from '@angular/core';
 import Keyboard from 'simple-keyboard';
 import 'simple-keyboard/build/css/index.css';
+import 'recordrtc';
+
 
 @Component({
   selector: 'app-record',
@@ -16,7 +18,19 @@ export class RecordComponent {
   keyboardArrows: Keyboard;
   keyboardNumPad: Keyboard;
   keyboardNumPadEnd: Keyboard;
+  keyboards: Keyboard[] = [];
 
+  mediaRecorder: MediaRecorder;
+  audioChunks: BlobPart[];
+  audioChunksForButton: Map<string, BlobPart[]>;
+  audioChunksArray: any[] = [];
+  audioBlob: Map<string, Blob | MediaSource> = new Map<string, Blob>();
+  audioBlobUrl: Map<string, string> = new Map<string, string>();
+
+  lastButtonPressed: string;
+  lastTimeOfButtonPress: number;
+
+  minimumTimeOfRecording: number = 300;
 
   ngAfterViewInit() {
     this.keyboard = new Keyboard(".simple-keyboard-main", {
@@ -97,10 +111,13 @@ export class RecordComponent {
         default: ["{numpadsubtract}", "{numpadadd}", "{numpadenter}"]
       }
     });
+    this.keyboards.push(this.keyboard, this.keyboardArrows, this.keyboardNumPad, this.keyboardControlPad, this.keyboardNumPad);
+    this.startAudioRecording();
+    this.lastTimeOfButtonPress = new Date().getTime();
   }
 
   onChange = (input: string) => {
-    this.value = input;
+    // this.value = input;
     console.log("Input changed", input);
   };
 
@@ -119,19 +136,28 @@ export class RecordComponent {
   //   if (event.shiftKey || event.key.includes("lock")) this.handleShift();
   // }
 
-  onKeyPress = (button: string) => {
+  onKeyPress =  async (button: string) => {
     console.log("Button pressed", button);
-
+    this.lastButtonPressed = button;
     /**
      * If you want to handle the shift and caps lock buttons
      */
-    this.keyboard.addButtonTheme(button, "my-button");
+
     this.activateButtonTheme(button);
+
     // if (button.includes("shift") || button === "{lock}") this.handleShift();
+    if (this.audioBlobUrl.get(button)) {
+      let audio = new Audio(this.audioBlobUrl.get(button));
+      audio.play();
+    } else {
+      await this.delay(1000)
+      this.restartAndProcessAudioRecording();
+    }
+    this.lastTimeOfButtonPress = new Date().getTime();
   };
 
   commonKeyboardOptions = {
-    // onChange: (input: string) => this.onChange(input),
+    onChange: (input: string) => this.onChange(input),
     onKeyPress: (button: string) => this.onKeyPress(button),
     // onKeyReleased: (button: string) => this.onKeyReleased(button),
     theme: "simple-keyboard hg-theme-default hg-layout-default",
@@ -146,12 +172,84 @@ export class RecordComponent {
     this.keyboard.setInput(event.target.value);
   };
 
-  private resetButtonTheme(button: string) {
-    this.keyboard.removeButtonTheme(button, "my-button");
+  delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  private activateButtonTheme(button: string) {
-    this.keyboard.addButtonTheme(button, "my-button");
+  private resetButtonTheme(button: string, className: string) {
+    this.keyboards.forEach(keyboard => {
+      keyboard.removeButtonTheme(button, className);
+    });
+  }
+
+  private async activateButtonTheme(button: string) {
+    this.keyboards.forEach(keyboard => {
+      keyboard.addButtonTheme(button, "activated");
+    });
+    await this.delay(1000);
+    this.resetButtonTheme(button, "activated");
+    this.keyboards.forEach(keyboard => {
+      keyboard.addButtonTheme(button, "pressed");
+    });
+  }
+
+  private startAudioRecording() {
+    navigator.mediaDevices.getUserMedia({audio: true})
+      .then(stream => {
+        // start recoring microphone
+        this.mediaRecorder = new MediaRecorder(stream);
+        this.mediaRecorder.start(100);
+
+
+        this.audioChunksForButton = new Map<string, BlobPart[]>();
+        this.audioChunks = [];
+
+        this.mediaRecorder.addEventListener("dataavailable", event => {
+          this.audioChunks.push(event.data);
+          console.log(event.data.type)
+          console.log(this.audioChunksForButton.keys());
+          console.log(this.audioChunksForButton.values());
+        })
+
+        this.mediaRecorder.addEventListener("stop", () => {
+          this.audioChunksForButton.set(this.lastButtonPressed, this.audioChunks);
+          this.createAudioBlob();
+        });
+
+      });
+  }
+
+  private restartAndProcessAudioRecording() {
+    if (new Date().getTime() - this.lastTimeOfButtonPress > this.minimumTimeOfRecording){
+      this.mediaRecorder.stop();
+      this.startAudioRecording();
+    } else {
+      alert("You have to record for at least " + this.minimumTimeOfRecording + " milliseconds!");
+    }
+  }
+
+  // ASYNC: Make button red for 1s, then blue again
+  // private async activateButtonTheme(button: string) {
+  //   this.keyboards.forEach(keyboard => {
+  //     keyboard.addButtonTheme(button, "activated");
+  //   });
+  //   await this.delay(1000);
+  //   this.keyboards.forEach(keyboard => {
+  //     keyboard.removeButtonTheme(button, "activated");
+  //   });
+  //   this.keyboards.forEach(keyboard => {
+  //     keyboard.addButtonTheme(button, "pressed");
+  //   });
+  // }
+// "audio/webm;codecs=opus"
+  private createAudioBlob() {
+    console.log("create audio blob...");
+    this.audioBlob.set(this.lastButtonPressed, new Blob(this.audioChunksForButton.get(this.lastButtonPressed)));
+    this.audioBlobUrl.set(this.lastButtonPressed, URL.createObjectURL(<Blob>this.audioBlob.get(this.lastButtonPressed)));
+    // let audiobuffer = new AudioBuffer()
+    console.log(this.audioBlob);
+    console.log(this.audioBlobUrl);
+    // play audio
   }
 
   // handleShift = () => {
